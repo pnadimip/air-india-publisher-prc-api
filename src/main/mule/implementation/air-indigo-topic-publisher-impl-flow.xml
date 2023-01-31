@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<flow name="air-indigo-topic-publisher-impl-flow" doc:id="2b984482-d50c-4d04-ae13-f6d2854fa12f" >
+		<logger level="INFO" doc:name="Start Logger" doc:id="82e2c11a-1176-4b46-91eb-b4ce9cfd54d6" message="#[app.name] air asia topic publisher process api flow started and request is #[payload] correlation Id is : #[vars.correlationID]"/>
+		<ee:transform doc:name="Transform Message" doc:id="1d987cf3-cb27-4d40-ba22-bde3fca0a18e" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "flightName": payload.FlightName,
+    "flightDate": payload.flight_date,
+    "airLines": payload.AirLines,
+    "from": payload.From,
+    "to": payload.To,
+    "fare": payload.Fare,
+    "departure": payload.Departure,
+    "arrival": payload.Arrival
+
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<http:request method="POST" doc:name="air asia flights of air india publisher sys api call" doc:id="6bb81e8f-2053-4832-8578-60a2dc71c913" config-ref="air-india-publisher-sys-api-request-configuration" path="/airIndigoFLights">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	correlationId : vars.correlationID
+}]]]></http:headers>
+		</http:request>
+		<ee:transform doc:name="Transform Message" doc:id="c3eb9b18-1155-48c5-b470-340c251aa67d" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="End Logger" doc:id="28ab7acb-4cbc-44f0-9285-23377786c541" message="Final response of the #[app.name ] api is #[payload]   #[vars.correlationID]"/>
+		<error-handler ref="global-error-handlerError_Handler">
+			
+		</error-handler>
+	</flow>
+</mule>
